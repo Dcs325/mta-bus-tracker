@@ -12,22 +12,61 @@ const API_BASE_URL = Platform.OS === 'web' ? 'http://localhost:3000' : `http://$
 
 // Fetch all buses for a specific line
 export async function fetchBusesForLine(lineRef) {
-    const url = `http://localhost:3000/api/vehicle-monitoring?lineRef=${lineRef}`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    // Parse the SIRI VehicleMonitoring data to extract bus info
-    const vehicles = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity || [];
-    return vehicles.map(v => {
-        const mvj = v.MonitoredVehicleJourney;
-        return {
-            id: mvj.VehicleRef,
-            lat: mvj.VehicleLocation.Latitude,
-            lon: mvj.VehicleLocation.Longitude,
-            label: mvj.LineRef,
-            nextStop: mvj.OnwardCalls?.OnwardCall?.[0]?.StopPointName || 'N/A',
-        };
-    });
+    try {
+        console.log(`Fetching buses for line: ${lineRef}`);
+        const url = `http://localhost:3000/api/vehicle-monitoring?lineRef=${lineRef}`;
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`API responded with status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('API Response received:', JSON.stringify(data).substring(0, 100) + '...');
+        
+        // Validate the response structure
+        if (!data.Siri || 
+            !data.Siri.ServiceDelivery || 
+            !data.Siri.ServiceDelivery.VehicleMonitoringDelivery || 
+            !data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0]) {
+            console.error('Invalid API response structure:', JSON.stringify(data).substring(0, 200));
+            return [];
+        }
+        
+        // Parse the SIRI VehicleMonitoring data to extract bus info
+        const vehicles = data.Siri.ServiceDelivery.VehicleMonitoringDelivery[0].VehicleActivity || [];
+        console.log(`Found ${vehicles.length} vehicles for line ${lineRef}`);
+        
+        return vehicles.map(v => {
+            const mvj = v.MonitoredVehicleJourney;
+            const result = {
+                id: mvj.VehicleRef,
+                lat: mvj.VehicleLocation?.Latitude,
+                lon: mvj.VehicleLocation?.Longitude,
+                label: mvj.LineRef,
+                nextStop: mvj.OnwardCalls?.OnwardCall?.[0]?.StopPointName || 'N/A',
+                destination: mvj.DestinationName || 'Unknown',
+                recordedAtTime: v.RecordedAtTime,
+                bearing: mvj.Bearing,
+                progress: mvj.ProgressRate,
+                occupancy: mvj.Occupancy,
+                vehicleJourneyRef: mvj.FramedVehicleJourneyRef?.DatedVehicleJourneyRef
+            };
+            
+            // Log any missing critical data
+            if (!result.lat || !result.lon) {
+                console.warn(`Bus ${result.id} has invalid coordinates:`, result.lat, result.lon);
+            }
+            
+            return result;
+        }).filter(bus => {
+            // Filter out buses with invalid coordinates
+            return typeof bus.lat === 'number' && typeof bus.lon === 'number';
+        });
+    } catch (error) {
+        console.error('Error in fetchBusesForLine:', error);
+        throw error;
+    }
 }
 
 // Fetch bus stops for a specific line
