@@ -4,19 +4,225 @@ import { GTFS_STOPS } from './utils/gtfsStops';
 import { fetchBusesForLine } from './utils/mtaApi';
 
 const BUS_LINES = [
+    // B1 - Bay Ridge - Manhattan Beach
     { value: 'B1_NB', label: 'B1 - Bay Ridge to Manhattan Beach' },
     { value: 'B1_SB', label: 'B1 - Manhattan Beach to Bay Ridge' },
-    { value: 'B2_NB', label: 'B2 - Kings Plaza to Midwood' },
-    { value: 'B2_SB', label: 'B2 - Midwood to Kings Plaza' },
-    { value: 'B3_NB', label: 'B3 - Sheepshead Bay to Kings Plaza' },
-    { value: 'B3_SB', label: 'B3 - Kings Plaza to Sheepshead Bay' },
-    { value: 'B49_NB', label: 'B49 - Sheepshead Bay to Downtown Brooklyn' },
-    { value: 'B49_SB', label: 'B49 - Downtown Brooklyn to Sheepshead Bay' },
-    { value: 'B60_NB', label: 'B60 - Canarsie to Downtown Brooklyn' },
-    { value: 'B60_SB', label: 'B60 - Downtown Brooklyn to Canarsie' },
-    { value: 'B47_NB', label: 'B47 - Kings Plaza to Downtown Brooklyn' },
-    { value: 'B47_SB', label: 'B47 - Downtown Brooklyn to Kings Plaza' },
-    // ...add more as needed
+    
+    // B2 - Kings Hwy Station - Kings Plaza
+    { value: 'B2_NB', label: 'B2 - Kings Hwy Station to Kings Plaza' },
+    { value: 'B2_SB', label: 'B2 - Kings Plaza to Kings Hwy Station' },
+    
+    // B3 - Bensonhurst - Bergen Beach
+    { value: 'B3_NB', label: 'B3 - Bensonhurst to Bergen Beach' },
+    { value: 'B3_SB', label: 'B3 - Bergen Beach to Bensonhurst' },
+    
+    // B4 - Bay Ridge - Sheepshead Bay
+    { value: 'B4_NB', label: 'B4 - Bay Ridge to Sheepshead Bay' },
+    { value: 'B4_SB', label: 'B4 - Sheepshead Bay to Bay Ridge' },
+    
+    // B6 - Bath Beach - East New York
+    { value: 'B6_NB', label: 'B6 - Bath Beach to East New York' },
+    { value: 'B6_SB', label: 'B6 - East New York to Bath Beach' },
+    
+    // B7 - Midwood - Bedford-Stuyvesant
+    { value: 'B7_NB', label: 'B7 - Midwood to Bedford-Stuyvesant' },
+    { value: 'B7_SB', label: 'B7 - Bedford-Stuyvesant to Midwood' },
+    
+    // B8 - Dyker Heights - East Flatbush
+    { value: 'B8_NB', label: 'B8 - Dyker Heights to East Flatbush' },
+    { value: 'B8_SB', label: 'B8 - East Flatbush to Dyker Heights' },
+    
+    // B9 - Bay Ridge - Kings Plaza
+    { value: 'B9_NB', label: 'B9 - Bay Ridge to Kings Plaza' },
+    { value: 'B9_SB', label: 'B9 - Kings Plaza to Bay Ridge' },
+    
+    // B11 - Sunset Park - Midwood
+    { value: 'B11_NB', label: 'B11 - Sunset Park to Midwood' },
+    { value: 'B11_SB', label: 'B11 - Midwood to Sunset Park' },
+    
+    // B12 - Lefferts Gardens - East New York
+    { value: 'B12_NB', label: 'B12 - Lefferts Gardens to East New York' },
+    { value: 'B12_SB', label: 'B12 - East New York to Lefferts Gardens' },
+    
+    // B13 - Spring Creek - Wyckoff Hospital
+    { value: 'B13_NB', label: 'B13 - Spring Creek to Wyckoff Hospital' },
+    { value: 'B13_SB', label: 'B13 - Wyckoff Hospital to Spring Creek' },
+    
+    // B14 - Spring Creek - Crown Heights
+    { value: 'B14_NB', label: 'B14 - Spring Creek to Crown Heights' },
+    { value: 'B14_SB', label: 'B14 - Crown Heights to Spring Creek' },
+    
+    // B15 - Bedford Stuyvesant - JFK AirTrain
+    { value: 'B15_NB', label: 'B15 - Bedford Stuyvesant to JFK AirTrain' },
+    { value: 'B15_SB', label: 'B15 - JFK AirTrain to Bedford Stuyvesant' },
+    
+    // B16 - Bay Ridge - Lefferts Gardens
+    { value: 'B16_NB', label: 'B16 - Bay Ridge to Lefferts Gardens' },
+    { value: 'B16_SB', label: 'B16 - Lefferts Gardens to Bay Ridge' },
+    
+    // B17 - Canarsie - Crown Heights
+    { value: 'B17_NB', label: 'B17 - Canarsie to Crown Heights' },
+    { value: 'B17_SB', label: 'B17 - Crown Heights to Canarsie' },
+    
+    // B20 - Ridgewood - Spring Creek
+    { value: 'B20_NB', label: 'B20 - Ridgewood to Spring Creek' },
+    { value: 'B20_SB', label: 'B20 - Spring Creek to Ridgewood' },
+    
+    // B24 - Williamsburg - Greenpoint
+    { value: 'B24_NB', label: 'B24 - Williamsburg to Greenpoint' },
+    { value: 'B24_SB', label: 'B24 - Greenpoint to Williamsburg' },
+    
+    // B25 - Downtown Brooklyn & DUMBO - Broadway Junction
+    { value: 'B25_NB', label: 'B25 - Downtown Brooklyn & DUMBO to Broadway Junction' },
+    { value: 'B25_SB', label: 'B25 - Broadway Junction to Downtown Brooklyn & DUMBO' },
+    
+    // B26 - Downtown Brooklyn - Ridgewood
+    { value: 'B26_NB', label: 'B26 - Downtown Brooklyn to Ridgewood' },
+    { value: 'B26_SB', label: 'B26 - Ridgewood to Downtown Brooklyn' },
+    
+    // B31 - Gerritsen Beach - Kings Hwy Station
+    { value: 'B31_NB', label: 'B31 - Gerritsen Beach to Kings Hwy Station' },
+    { value: 'B31_SB', label: 'B31 - Kings Hwy Station to Gerritsen Beach' },
+    
+    // B32 - Williamsburg - Long Island City
+    { value: 'B32_NB', label: 'B32 - Williamsburg to Long Island City' },
+    { value: 'B32_SB', label: 'B32 - Long Island City to Williamsburg' },
+    
+    // B35 - Brownsville - Sunset Park
+    { value: 'B35_NB', label: 'B35 - Brownsville to Sunset Park' },
+    { value: 'B35_SB', label: 'B35 - Sunset Park to Brownsville' },
+    
+    // B36 - Sheepshead Bay - Coney Island
+    { value: 'B36_NB', label: 'B36 - Sheepshead Bay to Coney Island' },
+    { value: 'B36_SB', label: 'B36 - Coney Island to Sheepshead Bay' },
+    
+    // B37 - Downtown Brooklyn - Bay Ridge
+    { value: 'B37_NB', label: 'B37 - Downtown Brooklyn to Bay Ridge' },
+    { value: 'B37_SB', label: 'B37 - Bay Ridge to Downtown Brooklyn' },
+    
+    // B38 - Ridgewood - Downtown Brooklyn
+    { value: 'B38_NB', label: 'B38 - Ridgewood to Downtown Brooklyn' },
+    { value: 'B38_SB', label: 'B38 - Downtown Brooklyn to Ridgewood' },
+    
+    // B39 - Williamsburg Bridge Plaza - Lower East Side
+    { value: 'B39_NB', label: 'B39 - Williamsburg Bridge Plaza to Lower East Side' },
+    { value: 'B39_SB', label: 'B39 - Lower East Side to Williamsburg Bridge Plaza' },
+    
+    // B41 - Kings Plaza - Downtown Brooklyn
+    { value: 'B41_NB', label: 'B41 - Kings Plaza to Downtown Brooklyn' },
+    { value: 'B41_SB', label: 'B41 - Downtown Brooklyn to Kings Plaza' },
+    
+    // B42 - Canarsie Pier - Rockaway Parkway Station
+    { value: 'B42_NB', label: 'B42 - Canarsie Pier to Rockaway Parkway Station' },
+    { value: 'B42_SB', label: 'B42 - Rockaway Parkway Station to Canarsie Pier' },
+    
+    // B43 - Greenpoint - Lefferts Gardens
+    { value: 'B43_NB', label: 'B43 - Greenpoint to Lefferts Gardens' },
+    { value: 'B43_SB', label: 'B43 - Lefferts Gardens to Greenpoint' },
+    
+    // B44 - Sheepshead Bay - Williamsburg
+    { value: 'B44_NB', label: 'B44 - Sheepshead Bay to Williamsburg' },
+    { value: 'B44_SB', label: 'B44 - Williamsburg to Sheepshead Bay' },
+    
+    // B44 SBS - Sheepshead Bay - Williamsburg (Select Bus Service)
+    { value: 'B44+_NB', label: 'B44-SBS - Sheepshead Bay to Williamsburg (Select Bus)' },
+    { value: 'B44+_SB', label: 'B44-SBS - Williamsburg to Sheepshead Bay (Select Bus)' },
+    
+    // B45 - Downtown Brooklyn - Crown Heights
+    { value: 'B45_NB', label: 'B45 - Downtown Brooklyn to Crown Heights' },
+    { value: 'B45_SB', label: 'B45 - Crown Heights to Downtown Brooklyn' },
+    
+    // B46 - Kings Plaza - Williamsburg
+    { value: 'B46_NB', label: 'B46 - Kings Plaza to Williamsburg' },
+    { value: 'B46_SB', label: 'B46 - Williamsburg to Kings Plaza' },
+    
+    // B46 SBS - Kings Plaza - Williamsburg (Select Bus Service)
+    { value: 'B46+_NB', label: 'B46-SBS - Kings Plaza to Williamsburg (Select Bus)' },
+    { value: 'B46+_SB', label: 'B46-SBS - Williamsburg to Kings Plaza (Select Bus)' },
+    
+    // B47 - Kings Plaza - Bedford-Stuyvesant
+    { value: 'B47_NB', label: 'B47 - Kings Plaza to Bedford-Stuyvesant' },
+    { value: 'B47_SB', label: 'B47 - Bedford-Stuyvesant to Kings Plaza' },
+    
+    // B48 - Lefferts Gardens - Greenpoint
+    { value: 'B48_NB', label: 'B48 - Lefferts Gardens to Greenpoint' },
+    { value: 'B48_SB', label: 'B48 - Greenpoint to Lefferts Gardens' },
+    
+    // B49 - Manhattan Beach - Bedford-Stuyvesant
+    { value: 'B49_NB', label: 'B49 - Manhattan Beach to Bedford-Stuyvesant' },
+    { value: 'B49_SB', label: 'B49 - Bedford-Stuyvesant to Manhattan Beach' },
+    
+    // B52 - Downtown Brooklyn - Ridgewood
+    { value: 'B52_NB', label: 'B52 - Downtown Brooklyn to Ridgewood' },
+    { value: 'B52_SB', label: 'B52 - Ridgewood to Downtown Brooklyn' },
+    
+    // B54 - Downtown Brooklyn - Ridgewood
+    { value: 'B54_NB', label: 'B54 - Downtown Brooklyn to Ridgewood' },
+    { value: 'B54_SB', label: 'B54 - Ridgewood to Downtown Brooklyn' },
+    
+    // B57 - Gowanus - Maspeth
+    { value: 'B57_NB', label: 'B57 - Gowanus to Maspeth' },
+    { value: 'B57_SB', label: 'B57 - Maspeth to Gowanus' },
+    
+    // B60 - Williamsburg - Canarsie
+    { value: 'B60_NB', label: 'B60 - Williamsburg to Canarsie' },
+    { value: 'B60_SB', label: 'B60 - Canarsie to Williamsburg' },
+    
+    // B61 - Park Slope - Downtown Brooklyn
+    { value: 'B61_NB', label: 'B61 - Park Slope to Downtown Brooklyn' },
+    { value: 'B61_SB', label: 'B61 - Downtown Brooklyn to Park Slope' },
+    
+    // B62 - Downtown Brooklyn - Long Island City
+    { value: 'B62_NB', label: 'B62 - Downtown Brooklyn to Long Island City' },
+    { value: 'B62_SB', label: 'B62 - Long Island City to Downtown Brooklyn' },
+    
+    // B63 - Bay Ridge - Cobble Hill
+    { value: 'B63_NB', label: 'B63 - Bay Ridge to Cobble Hill' },
+    { value: 'B63_SB', label: 'B63 - Cobble Hill to Bay Ridge' },
+    
+    // B64 - Bay Ridge - Coney Island
+    { value: 'B64_NB', label: 'B64 - Bay Ridge to Coney Island' },
+    { value: 'B64_SB', label: 'B64 - Coney Island to Bay Ridge' },
+    
+    // B65 - Downtown Brooklyn - Crown Heights
+    { value: 'B65_NB', label: 'B65 - Downtown Brooklyn to Crown Heights' },
+    { value: 'B65_SB', label: 'B65 - Crown Heights to Downtown Brooklyn' },
+    
+    // B67 - Brooklyn Navy Yard - Kensington
+    { value: 'B67_NB', label: 'B67 - Brooklyn Navy Yard to Kensington' },
+    { value: 'B67_SB', label: 'B67 - Kensington to Brooklyn Navy Yard' },
+    
+    // B68 - Coney Island - Windsor Terrace
+    { value: 'B68_NB', label: 'B68 - Coney Island to Windsor Terrace' },
+    { value: 'B68_SB', label: 'B68 - Windsor Terrace to Coney Island' },
+    
+    // B69 - Downtown Brooklyn - Kensington
+    { value: 'B69_NB', label: 'B69 - Downtown Brooklyn to Kensington' },
+    { value: 'B69_SB', label: 'B69 - Kensington to Downtown Brooklyn' },
+    
+    // B70 - Dyker Heights - Sunset Park
+    { value: 'B70_NB', label: 'B70 - Dyker Heights to Sunset Park' },
+    { value: 'B70_SB', label: 'B70 - Sunset Park to Dyker Heights' },
+    
+    // B74 - Sea Gate - Stillwell Av
+    { value: 'B74_NB', label: 'B74 - Sea Gate to Stillwell Av' },
+    { value: 'B74_SB', label: 'B74 - Stillwell Av to Sea Gate' },
+    
+    // B82 - Coney Island - Spring Creek Towers
+    { value: 'B82_NB', label: 'B82 - Coney Island to Spring Creek Towers' },
+    { value: 'B82_SB', label: 'B82 - Spring Creek Towers to Coney Island' },
+    
+    // B82 SBS - Coney Island - Spring Creek Towers (Select Bus Service)
+    { value: 'B82+_NB', label: 'B82-SBS - Coney Island to Spring Creek Towers (Select Bus)' },
+    { value: 'B82+_SB', label: 'B82-SBS - Spring Creek Towers to Coney Island (Select Bus)' },
+    
+    // B83 - Spring Creek - Broadway Junction
+    { value: 'B83_NB', label: 'B83 - Spring Creek to Broadway Junction' },
+    { value: 'B83_SB', label: 'B83 - Broadway Junction to Spring Creek' },
+    
+    // B84 - Spring Creek - New Lots
+    { value: 'B84_NB', label: 'B84 - Spring Creek to New Lots' },
+    { value: 'B84_SB', label: 'B84 - New Lots to Spring Creek' }
 ];
 
 const LINE_COLORS = ['#d500f9', '#00bcd4', '#ffeb3b', '#ff5722', '#4caf50', '#2196f3', '#e91e63', '#8bc34a', '#ff9800', '#9c27b0'];
@@ -168,6 +374,11 @@ export default function App() {
                 }
             });
             
+            // Mark the closest bus with isClosestToStop property
+            if (closestBus) {
+                closestBus.isClosestToStop = true;
+            }
+            
             return closestBus && stopObj ? {
                 line,
                 stop: stopObj,
@@ -176,6 +387,9 @@ export default function App() {
             } : null;
         })
     ).filter(Boolean);
+    
+    // Sort closest buses by distance
+    closestBuses.sort((a, b) => a.distance - b.distance);
     
     // Log closest buses for debugging
     console.log('Closest buses:', closestBuses.length > 0 ? 
@@ -399,7 +613,7 @@ export default function App() {
                                                 </div>
                                             );
                                         })}
-                                    </div>
+                </div>
                                 </div>
                             ))}
                         </div>
@@ -409,67 +623,137 @@ export default function App() {
                             0% { transform: rotate(0deg); }
                             100% { transform: rotate(360deg); }
                         }
-                    `}</style>
-                    {closestBuses.length > 0 ? closestBuses.map(({ line, stop, bus, distance }, idx) => (
-                        <div key={line + '-' + stop.id} style={{ 
-                            marginBottom: 12, 
-                            padding: 12, 
-                            background: '#fff', 
-                            borderRadius: 8, 
-                            border: '1px solid #e0e0e0',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                            transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
-                            cursor: 'pointer',
-                            ':hover': {
-                                transform: 'translateY(-2px)',
-                                boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        @keyframes pulse {
+                            0% {
+                                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
                             }
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderBottom: '1px solid #f0f0f0', paddingBottom: 6 }}>
-                                <span style={{ color: '#1976d2', fontWeight: 'bold', fontSize: 16, display: 'flex', alignItems: 'center' }}>
-                                    <span style={{ color: linesWithColors[line], fontWeight: 'bold', fontSize: 18, marginRight: 6 }}>●</span>
-                                    {line} → {stop.name}
-                                </span>
-                            </div>
-                            <div style={{ paddingLeft: 8 }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                                    <span style={{ color: '#333', fontWeight: 'bold', fontSize: 14 }}>Bus {bus.id || bus.vehicleRef || 'Unknown'}</span>
-                                    <span style={{ 
-                                        color: '#fff', 
-                                        fontWeight: 'bold', 
-                                        fontSize: 12,
-                                        backgroundColor: '#1976d2',
-                                        padding: '2px 6px',
-                                        borderRadius: 12
-                                    }}>~{(distance * 100).toFixed(2)} km</span>
-                                </div>
-                                <div style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
-                                    <div style={{ marginBottom: 2 }}><strong>Location:</strong> {bus.lat || bus.latitude}, {bus.lon || bus.longitude}</div>
-                                    <div><strong>Next Stop:</strong> {bus.nextStop || 'Unknown'}</div>
-                                    {bus.recordedAtTime && (
-                                        <div style={{ marginTop: 2 }}><strong>Updated:</strong> {new Date(bus.recordedAtTime).toLocaleTimeString()}</div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )) : (
+                            70% {
+                                box-shadow: 0 0 0 6px rgba(76, 175, 80, 0);
+                            }
+                            100% {
+                                box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+                            }
+                        }
+                    `}</style>
+                    <div style={{ marginBottom: 16 }}>
                         <div style={{ 
-                            color: '#666', 
-                            marginTop: 12, 
-                            padding: 16, 
-                            background: '#fff', 
-                            borderRadius: 8, 
-                            border: '1px solid #e0e0e0',
-                            textAlign: 'center',
-                            display: 'flex',
-                            flexDirection: 'column',
+                            fontWeight: 'bold', 
+                            color: '#1976d2', 
+                            fontSize: 18, 
+                            marginBottom: 8, 
+                            display: 'flex', 
                             alignItems: 'center',
-                            gap: 8
+                            justifyContent: 'space-between'
                         }}>
-                            <div style={{ fontSize: 16, fontWeight: 'bold', color: '#888' }}>No favorite stops selected</div>
-                            <div style={{ fontSize: 14, color: '#888' }}>Select your favorite stops to see the closest buses</div>
+                            <span>Closest Buses to Your Stops</span>
+                            <div style={{ 
+                                fontSize: 12, 
+                                color: '#666', 
+                                fontWeight: 'normal',
+                                display: 'flex',
+                                alignItems: 'center'
+                            }}>
+                                <span style={{ 
+                                    display: 'inline-block', 
+                                    width: 10, 
+                                    height: 10, 
+                                    borderRadius: '50%', 
+                                    backgroundColor: '#4caf50', 
+                                    marginRight: 4 
+                                }}></span>
+                                Auto-updating every 15s
+                            </div>
                         </div>
-                    )}
+                    </div>
+                    {closestBuses.length > 0 && closestBuses.map(({ line, stop, bus, distance }, idx) => {
+                        // Determine distance color based on proximity
+                        const distanceColor = distance < 0.01 ? '#4caf50' : // Very close (< 1km)
+                                            distance < 0.03 ? '#ff9800' : // Moderate distance (< 3km)
+                                            '#f44336'; // Far away
+                        
+                        // Format distance for display
+                        const formattedDistance = distance < 0.01 ? 
+                            `${(distance * 1000).toFixed(0)}m` : // Show in meters if < 1km
+                            `${distance.toFixed(2)}km`; // Show in km otherwise
+                        
+                        return (
+                            <div key={line + '-' + stop.id} style={{ 
+                                marginBottom: 12, 
+                                padding: 12, 
+                                background: '#fff', 
+                                borderRadius: 8, 
+                                border: '1px solid #e0e0e0',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                                transition: 'all 0.2s ease-in-out',
+                                cursor: 'pointer',
+                                position: 'relative',
+                                borderLeft: `4px solid ${linesWithColors[line]}`,
+                                ':hover': {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                                }
+                            }}>
+                                {/* Pulsing indicator for active tracking */}
+                                <div style={{ 
+                                    position: 'absolute', 
+                                    top: 8, 
+                                    right: 8, 
+                                    width: 8, 
+                                    height: 8, 
+                                    borderRadius: '50%', 
+                                    backgroundColor: '#4caf50',
+                                    boxShadow: '0 0 0 rgba(76, 175, 80, 0.4)',
+                                    animation: 'pulse 2s infinite'
+                                }}></div>
+                                
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, borderBottom: '1px solid #f0f0f0', paddingBottom: 6 }}>
+                                    <span style={{ color: '#1976d2', fontWeight: 'bold', fontSize: 16, display: 'flex', alignItems: 'center' }}>
+                                        <span style={{ color: linesWithColors[line], fontWeight: 'bold', fontSize: 18, marginRight: 6 }}>●</span>
+                                        {line} → {stop.name}
+                                    </span>
+                                </div>
+                                <div style={{ paddingLeft: 8 }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                                        <span style={{ color: '#333', fontWeight: 'bold', fontSize: 14 }}>Bus {bus.id || bus.vehicleRef || 'Unknown'}</span>
+                                        <span style={{ 
+                                            color: '#fff', 
+                                            fontWeight: 'bold', 
+                                            fontSize: 12,
+                                            backgroundColor: distanceColor,
+                                            padding: '2px 8px',
+                                            borderRadius: 12,
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: 4
+                                        }}>
+                                            <span style={{ fontSize: 10 }}>📍</span>
+                                            {formattedDistance}
+                                        </span>
+                                    </div>
+                                    <div style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
+                                        {bus.nextStop && (
+                                            <div style={{ 
+                                                fontSize: '13px', 
+                                                backgroundColor: '#e3f2fd', 
+                                                padding: '5px 8px', 
+                                                borderRadius: '4px', 
+                                                marginBottom: '8px',
+                                                borderLeft: '3px solid #1976d2',
+                                                fontWeight: 'bold',
+                                                color: '#0d47a1'
+                                            }}>
+                                                <span>Current Stop:</span> {bus.nextStop}
+                                            </div>
+                                        )}
+                                        <div style={{ marginBottom: 2 }}><strong>Location:</strong> {bus.lat || bus.latitude}, {bus.lon || bus.longitude}</div>
+                                        {bus.recordedAtTime && (
+                                            <div style={{ marginTop: 2 }}><strong>Updated:</strong> {new Date(bus.recordedAtTime).toLocaleTimeString()}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
             {/* Right panel: Map */}
@@ -655,6 +939,9 @@ export default function App() {
                     buses={busData}
                     center={[40.650002, -73.949997]}
                     routeCoordinates={routeCoordinates}
+                    favStops={favStops}
+                    linesWithColors={linesWithColors}
+                    closestBuses={closestBuses}
                 />
             </div>
         </div>

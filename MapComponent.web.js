@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { GTFS_STOPS } from './utils/gtfsStops';
 
 // Fix Leaflet default icon issues - only run in browser environment
 if (typeof window !== 'undefined' && typeof L !== 'undefined' && L.Icon && L.Icon.Default) {
@@ -34,17 +35,43 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     }
 }
 
-// Create a custom bus icon
-const busIcon = new L.Icon({
-    iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-    iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-    shadowSize: [41, 41],
-    className: 'bus-icon'
-});
+// Create custom bus icons
+const createBusIcon = (isClosest = false, lineColor = '#1976d2', busLabel = '') => {
+    const size = isClosest ? 28 : 24;
+    const iconHtml = `
+        <div style="
+            background: linear-gradient(45deg, ${lineColor}, ${lineColor}dd);
+            width: ${size}px;
+            height: ${size}px;
+            border-radius: 6px;
+            border: 2px solid white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            position: relative;
+            transform: rotate(0deg);
+            transition: all 0.3s ease;
+        " class="${isClosest ? 'closest-bus' : 'bus-icon'}">
+            🚌
+            ${busLabel ? `<div style="position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); background: ${lineColor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px; white-space: nowrap;">${busLabel}</div>` : ''}
+        </div>
+    `;
+    
+    return L.divIcon({
+        html: iconHtml,
+        className: 'bus-marker',
+        iconSize: [size + 4, size + 4],
+        iconAnchor: [(size + 4) / 2, (size + 4) / 2],
+        popupAnchor: [0, -(size / 2)]
+    });
+};
+
+// Bus icons are now created dynamically with line colors
 
 function CenterMapButton({ center, routeCoordinates, buses }) {
     const map = useMap();
@@ -267,7 +294,7 @@ function MapInitializer({ routeCoordinates, buses }) {
     return null;
 }
 
-export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [] }) {
+export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [] }) {
     const [mapReady, setMapReady] = useState(false);
     const mapRef = useRef(null);
     const [mapInstance, setMapInstance] = useState(null);
@@ -465,6 +492,52 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                 </div>
             )}
             
+            <style>{`
+                /* Custom styles for bus markers */
+                .bus-marker {
+                    transition: all 0.5s ease-in-out;
+                }
+                
+                .bus-icon {
+                    animation: bus-move 3s ease-in-out infinite;
+                    transition: all 0.3s ease;
+                }
+                
+                .bus-icon:hover {
+                    transform: scale(1.2) !important;
+                    z-index: 1000 !important;
+                }
+                
+                .closest-bus {
+                    animation: closest-bus-pulse 2s infinite, bus-move 3s ease-in-out infinite;
+                    z-index: 999 !important;
+                }
+                
+                @keyframes bus-move {
+                    0%, 100% {
+                        transform: translateY(0px) rotate(0deg);
+                    }
+                    25% {
+                        transform: translateY(-2px) rotate(1deg);
+                    }
+                    50% {
+                        transform: translateY(0px) rotate(0deg);
+                    }
+                    75% {
+                        transform: translateY(-1px) rotate(-1deg);
+                    }
+                }
+                
+                @keyframes closest-bus-pulse {
+                    0%, 100% {
+                        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+                    }
+                    50% {
+                        box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+                    }
+                }
+            `}</style>
+            
             <MapContainer 
                 center={center} 
                 zoom={13} 
@@ -482,36 +555,69 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 />
                 
-                {/* Display the bus route polyline */}
-                {routeCoordinates && routeCoordinates.length > 1 && (
-                    <Polyline 
-                        positions={routeCoordinates}
-                        pathOptions={{ color: '#1976d2', weight: 5, opacity: 0.8 }}
-                    />
-                )}
-                
-                {/* Debug message if no route coordinates */}
-                {(!routeCoordinates || routeCoordinates.length <= 1) && console.log('No valid route coordinates to display')}
+                {/* Route polyline removed - buses now show as individual moving icons */}
                 
                 {/* Bus markers */}
                 {validBuses.map(bus => {
                     const { lat, lon } = getBusCoordinates(bus);
+                    const isClosestBus = bus.isClosestToStop === true;
+                    const busLine = bus.label || bus.lineRef || 'Unknown';
+                    const lineColor = linesWithColors[busLine] || '#1976d2';
+                    const busLabel = busLine;
+                    
                     return (
                         <Marker 
                             key={bus.id || bus.vehicleRef || `bus-${lat}-${lon}`} 
                             position={[lat, lon]} 
-                            icon={busIcon}
+                            icon={createBusIcon(isClosestBus, lineColor, busLabel)}
                         >
                             <Popup>
                                 <div style={{ padding: '5px' }}>
-                                    <div style={{ fontWeight: 'bold', fontSize: '14px', marginBottom: '5px', color: '#1976d2' }}>
-                                        Bus {bus.label || bus.lineRef || 'Unknown'}
+                                    <div style={{ 
+                                        fontWeight: 'bold', 
+                                        fontSize: '14px', 
+                                        marginBottom: '5px', 
+                                        color: isClosestBus ? '#4caf50' : '#1976d2',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center'
+                                    }}>
+                                        <span>Bus {bus.label || bus.lineRef || 'Unknown'}</span>
+                                        {isClosestBus && (
+                                            <span style={{
+                                                fontSize: '11px',
+                                                backgroundColor: '#4caf50',
+                                                color: 'white',
+                                                padding: '2px 6px',
+                                                borderRadius: '10px',
+                                                marginLeft: '5px'
+                                            }}>
+                                                TRACKING
+                                            </span>
+                                        )}
                                     </div>
+                                    {bus.nextStop && (
+                                        <div style={{ 
+                                            fontSize: '13px', 
+                                            backgroundColor: isClosestBus ? '#e8f5e9' : '#e3f2fd', 
+                                            padding: '5px 8px', 
+                                            borderRadius: '4px', 
+                                            marginBottom: '8px',
+                                            borderLeft: `3px solid ${isClosestBus ? '#4caf50' : '#1976d2'}`,
+                                            fontWeight: 'bold'
+                                        }}>
+                                            <span style={{ color: isClosestBus ? '#2e7d32' : '#0d47a1' }}>Current Stop:</span> {bus.nextStop}
+                                        </div>
+                                    )}
                                     <div style={{ fontSize: '12px' }}>
                                         <strong>ID:</strong> {bus.id || bus.vehicleRef || 'Unknown'}<br />
-                                        <strong>Next Stop:</strong> {bus.nextStop || 'Unknown'}<br />
                                         {bus.destinationName && (
                                             <><strong>Destination:</strong> {bus.destinationName}<br /></>
+                                        )}
+                                        {bus.distance !== undefined && (
+                                            <><strong>Distance to stop:</strong> {bus.distance < 0.01 ? 
+                                                `${(bus.distance * 1000).toFixed(0)}m` : 
+                                                `${bus.distance.toFixed(2)}km`}<br /></>
                                         )}
                                         {bus.recordedAtTime && (
                                             <><strong>Updated:</strong> {new Date(bus.recordedAtTime).toLocaleTimeString()}<br /></>
@@ -521,6 +627,75 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                             </Popup>
                         </Marker>
                     );
+                })}
+                
+                {/* Draw colored lines from favorite stops to their closest buses */}
+                {closestBuses.map((closestBus, idx) => {
+                    const { line, stop, bus } = closestBus;
+                    const { lat: busLat, lon: busLon } = getBusCoordinates(bus);
+                    
+                    // Find the stop coordinates
+                    const stopData = GTFS_STOPS[line]?.find(s => s.id === stop.id);
+                    if (!stopData || !isValidCoordinates(busLat, busLon) || !isValidCoordinates(stopData.latitude, stopData.longitude)) {
+                        return null;
+                    }
+                    
+                    // Get color for this line
+                    const lineColor = linesWithColors[line] || '#1976d2';
+                    
+                    return (
+                        <Polyline
+                            key={`tracking-line-${line}-${stop.id}-${idx}`}
+                            positions={[
+                                [stopData.latitude, stopData.longitude],
+                                [busLat, busLon]
+                            ]}
+                            pathOptions={{ 
+                                color: lineColor, 
+                                weight: 4, 
+                                opacity: 0.8,
+                                dashArray: '10,5'
+                            }}
+                        />
+                    );
+                })}
+                
+                {/* Draw markers for favorite stops */}
+                {Object.entries(favStops).map(([line, stopIds]) => {
+                    const lineStops = GTFS_STOPS[line] || [];
+                    return stopIds.map(stopId => {
+                        const stopData = lineStops.find(s => s.id === stopId);
+                        if (!stopData || !isValidCoordinates(stopData.latitude, stopData.longitude)) {
+                            return null;
+                        }
+                        
+                        const lineColor = linesWithColors[line] || '#1976d2';
+                        
+                        return (
+                            <Marker
+                                key={`fav-stop-${line}-${stopId}`}
+                                position={[stopData.latitude, stopData.longitude]}
+                                icon={L.divIcon({
+                                    html: `<div style="background-color: ${lineColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>`,
+                                    className: 'favorite-stop-marker',
+                                    iconSize: [16, 16],
+                                    iconAnchor: [8, 8]
+                                })}
+                            >
+                                <Popup>
+                                    <div style={{ padding: '5px' }}>
+                                        <div style={{ fontWeight: 'bold', color: lineColor, marginBottom: '5px' }}>
+                                            {line} - Favorite Stop
+                                        </div>
+                                        <div style={{ fontSize: '12px' }}>
+                                            <strong>Stop:</strong> {stopData.name}<br />
+                                            <strong>ID:</strong> {stopData.id}
+                                        </div>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        );
+                    });
                 })}
                 
                 {/* Draw real-time movement lines between buses */}
