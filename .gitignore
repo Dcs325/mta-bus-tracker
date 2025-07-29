@@ -67,3 +67,7 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# GTFS data files
+gtfs_data/stop_times.txt
+gtfs_data/*.txt
