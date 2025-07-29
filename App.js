@@ -254,28 +254,33 @@ export default function App() {
     }, [favStops]);
     const [lastUpdateTime, setLastUpdateTime] = useState({ time: null, loading: false, error: false });
 
-    // Fetch bus data for selected line
+    // Fetch bus data for all lines with favorite stops
     useEffect(() => {
         let isMounted = true;
         let intervalId = null;
         
         async function fetchData() {
             try {
-                const lineId = selectedLine.split('_')[0];
-                console.log('Fetching buses for line:', lineId);
+                // Get unique line IDs from favorite stops
+                const favoriteLines = Object.keys(favStops);
+                const uniqueLineIds = [...new Set(favoriteLines.map(line => line.split('_')[0]))];
+                
+                console.log('Fetching buses for favorite lines:', uniqueLineIds);
                 
                 // Show loading state
                 setLastUpdateTime(prev => ({ ...prev, loading: true }));
                 
-                const buses = await fetchBusesForLine(lineId);
+                // Fetch buses for all favorite lines
+                const allBusesPromises = uniqueLineIds.map(lineId => fetchBusesForLine(lineId));
+                const allBusesResults = await Promise.all(allBusesPromises);
+                
+                // Combine all buses into a single array
+                const allBuses = allBusesResults.flat();
                 
                 // Only update state if component is still mounted
                 if (isMounted) {
-                    console.log(`Fetched ${buses.length} buses for line ${lineId}`);
-                    if (buses.length === 0) {
-                        console.warn('No buses found for this line');
-                    }
-                    setBusData(buses);
+                    console.log(`Fetched ${allBuses.length} total buses for ${uniqueLineIds.length} favorite lines`);
+                    setBusData(allBuses);
                     setLastUpdateTime({ time: new Date(), loading: false });
                 }
             } catch (error) {
@@ -286,18 +291,24 @@ export default function App() {
             }
         }
         
-        // Initial fetch
-        fetchData();
-        
-        // Set up interval for subsequent fetches
-        intervalId = setInterval(fetchData, 15000);
+        // Only fetch if there are favorite stops
+        if (Object.keys(favStops).length > 0) {
+            // Initial fetch
+            fetchData();
+            
+            // Set up interval for subsequent fetches
+            intervalId = setInterval(fetchData, 15000);
+        } else {
+            // Clear bus data if no favorite stops
+            setBusData([]);
+        }
         
         // Cleanup function
         return () => {
             isMounted = false;
             if (intervalId) clearInterval(intervalId);
         };
-    }, [selectedLine]);
+    }, [favStops]);
 
     // Compute linesWithColors for polylines
     const linesWithColors = {};
