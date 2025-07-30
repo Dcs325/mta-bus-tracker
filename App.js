@@ -1,7 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import MapComponent from './MapComponent.web.js';
+import { Platform } from 'react-native';
 import { GTFS_STOPS } from './utils/gtfsStops';
 import { fetchBusesForLine } from './utils/mtaApi';
+
+// Platform-specific imports
+let MapComponent;
+try {
+    if (Platform.OS === 'web') {
+        MapComponent = require('./MapComponent.web.js').default;
+    } else {
+        MapComponent = require('./MapComponent.native.js').default;
+    }
+} catch (error) {
+    console.warn('Failed to load MapComponent:', error);
+    // Fallback component
+    MapComponent = () => React.createElement('div', { style: { padding: 20 } }, 'Map component failed to load');
+}
 
 const BUS_LINES = [
     // B1 - Bay Ridge - Manhattan Beach
@@ -274,8 +288,14 @@ export default function App() {
                 const allBusesPromises = uniqueLineIds.map(lineId => fetchBusesForLine(lineId));
                 const allBusesResults = await Promise.all(allBusesPromises);
                 
-                // Combine all buses into a single array
-                const allBuses = allBusesResults.flat();
+                // Combine all buses into a single array and add direction info
+                const allBuses = allBusesResults.flatMap((buses, index) => {
+                    const lineId = uniqueLineIds[index];
+                    return buses.map(bus => ({
+                        ...bus,
+                        directionLine: lineId // Add the full direction line (e.g., 'B47_NB')
+                    }));
+                });
                 
                 // Only update state if component is still mounted
                 if (isMounted) {
@@ -348,9 +368,13 @@ export default function App() {
                 return null;
             }
             
-            // Filter buses for this line only
-            const lineBuses = busData.filter(bus => bus.label === line);
-            console.log(`Found ${lineBuses.length} buses for line ${line}`);
+            // Filter buses for this line only (match base line number)
+            const baseLineNumber = line.split('_')[0]; // Extract 'B47' from 'B47_NB'
+            const lineBuses = busData.filter(bus => bus.label === baseLineNumber).map(bus => ({
+                ...bus,
+                directionLine: line // Add the full direction line (e.g., 'B47_NB')
+            }));
+            console.log(`Found ${lineBuses.length} buses for line ${line} (base: ${baseLineNumber})`);
             
             if (lineBuses.length === 0) {
                 console.warn(`No buses found for line ${line}`);

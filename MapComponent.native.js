@@ -2,11 +2,11 @@ import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, Animated } from 'react-native';
 import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 
-export default function MapComponent({ busLocations = [], userLocation, favStops = {}, GTFS_STOPS = {}, nextStop, linesWithColors = {}, closestBuses = [] }) {
+export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [] }) {
     // Default region centered on Brooklyn
     const defaultRegion = {
-        latitude: 40.650002,
-        longitude: -73.949997,
+        latitude: center[0],
+        longitude: center[1],
         latitudeDelta: 0.1,
         longitudeDelta: 0.1,
     };
@@ -15,29 +15,12 @@ export default function MapComponent({ busLocations = [], userLocation, favStops
         <View style={styles.container}>
             <MapView
                 style={styles.map}
-                initialRegion={userLocation ? {
-                    latitude: userLocation.latitude,
-                    longitude: userLocation.longitude,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                } : defaultRegion}
+                initialRegion={defaultRegion}
             >
                 {/* Route polylines removed - buses now show as individual moving icons */}
 
-                {/* User location marker */}
-                {userLocation && (
-                    <Marker
-                        coordinate={{
-                            latitude: userLocation.latitude,
-                            longitude: userLocation.longitude,
-                        }}
-                        title="You"
-                        pinColor="blue"
-                    />
-                )}
-
                 {/* Bus markers */}
-                {busLocations.map((bus, idx) => {
+                {buses.map((bus, idx) => {
                     const isClosestBus = bus.isClosestToStop === true;
                     const pinColor = isClosestBus ? '#4caf50' : 'red';
                     
@@ -80,7 +63,14 @@ export default function MapComponent({ busLocations = [], userLocation, favStops
                                 <Callout>
                                     <View style={{ padding: 5, minWidth: 150 }}>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
-                                            <Text style={{ fontWeight: 'bold', fontSize: 14, color: '#4caf50' }}>Bus {bus.label || bus.id}</Text>
+                                            <Text style={{ fontWeight: 'bold', fontSize: 14, color: '#4caf50' }}>Bus {bus.label || bus.id} {(() => {
+                                                const directionLine = bus.directionLine || '';
+                                                if (directionLine.includes('_NB')) return '(NB)';
+                                                if (directionLine.includes('_SB')) return '(SB)';
+                                                if (directionLine.includes('_EB')) return '(EB)';
+                                                if (directionLine.includes('_WB')) return '(WB)';
+                                                return '';
+                                            })()}</Text>
                                             <View style={{ backgroundColor: '#4caf50', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 10 }}>
                                                 <Text style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>TRACKING</Text>
                                             </View>
@@ -125,7 +115,14 @@ export default function MapComponent({ busLocations = [], userLocation, favStops
                         >
                             <Callout>
                                 <View style={{ padding: 5, minWidth: 150 }}>
-                                    <Text style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 5 }}>Bus {bus.label || bus.id}</Text>
+                                    <Text style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 5 }}>Bus {bus.label || bus.id} {(() => {
+                                        const directionLine = bus.directionLine || '';
+                                        if (directionLine.includes('_NB')) return '(NB)';
+                                        if (directionLine.includes('_SB')) return '(SB)';
+                                        if (directionLine.includes('_EB')) return '(EB)';
+                                        if (directionLine.includes('_WB')) return '(WB)';
+                                        return '';
+                                    })()}</Text>
                                     {bus.nextStop && (
                                         <View style={{ 
                                             backgroundColor: '#e3f2fd', 

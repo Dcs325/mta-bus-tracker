@@ -439,10 +439,22 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
         routeCoordinates = [];
     }
     
-    // Filter out buses with invalid coordinates
+    // Filter out buses with invalid coordinates and add direction info
     const validBuses = buses.filter(bus => {
         const { lat, lon } = getBusCoordinates(bus);
         return isValidCoordinates(lat, lon);
+    }).map(bus => {
+        // If directionLine is missing, try to determine from favStops
+        if (!bus.directionLine && bus.label) {
+            const busLineNumber = bus.label;
+            // Find matching direction from favStops
+            for (const [lineKey, stopIds] of Object.entries(favStops)) {
+                if (lineKey.startsWith(busLineNumber + '_')) {
+                    return { ...bus, directionLine: lineKey };
+                }
+            }
+        }
+        return bus;
     });
     
     if (validBuses.length !== buses.length) {
@@ -582,7 +594,14 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                                         justifyContent: 'space-between',
                                         alignItems: 'center'
                                     }}>
-                                        <span>Bus {bus.label || bus.lineRef || 'Unknown'}</span>
+                                        <span>Bus {bus.label || bus.lineRef || 'Unknown'} {(() => {
+                                            const directionLine = bus.directionLine || '';
+                                            if (directionLine.includes('_NB')) return '(NB)';
+                                            if (directionLine.includes('_SB')) return '(SB)';
+                                            if (directionLine.includes('_EB')) return '(EB)';
+                                            if (directionLine.includes('_WB')) return '(WB)';
+                                            return '';
+                                        })()}</span>
                                         {isClosestBus && (
                                             <span style={{
                                                 fontSize: '11px',
