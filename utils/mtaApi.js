@@ -3,12 +3,23 @@ import { db } from './firebase';
 import { doc, setDoc } from 'firebase/firestore';
 import { Platform } from 'react-native';
 
-const MTA_API_KEY = "c1c955fd-f1f7-4a27-b3e8-8bb897d30ad7";
-const MTA_BASE_URL = "https://bustime.mta.info/api/siri";
+// Environment variables with fallbacks for development
+const MTA_API_KEY = process.env.EXPO_PUBLIC_MTA_API_KEY || "c1c955fd-f1f7-4a27-b3e8-8bb897d30ad7";
+const MTA_BASE_URL = process.env.EXPO_PUBLIC_MTA_BASE_URL || "https://bustime.mta.info/api/siri";
 
-// Use local IP for mobile devices
-const LOCAL_IP = '172.16.0.182'; // e.g., '192.168.1.100'
-const API_BASE_URL = Platform.OS === 'web' ? 'http://localhost:3000' : `http://${LOCAL_IP}:3000`;
+// Use local IP for mobile devices in development
+const LOCAL_IP = process.env.EXPO_PUBLIC_LOCAL_IP || '172.16.0.182';
+const PRODUCTION_API_URL = process.env.EXPO_PUBLIC_PRODUCTION_API_URL;
+
+// Determine API base URL based on environment
+const getApiBaseUrl = () => {
+  if (process.env.NODE_ENV === 'production' && PRODUCTION_API_URL) {
+    return PRODUCTION_API_URL;
+  }
+  return Platform.OS === 'web' ? 'http://localhost:3000' : `http://${LOCAL_IP}:3000`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Fallback API configuration for when local server is not accessible
 const FALLBACK_ENABLED = true;

@@ -4,7 +4,17 @@
   "description": "",
   "scripts": {
     "start": "expo start",
-    "web": "expo start --web"
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "server": "node server.js",
+    "server:prod": "NODE_ENV=production node server.production.js",
+    "build:dev": "eas build --profile development",
+    "build:preview": "eas build --profile preview",
+    "build:prod": "eas build --profile production",
+    "deploy:functions": "firebase deploy --only functions",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:firebase": "firebase deploy"
   },
   "keywords": [],
   "author": "",
@@ -16,7 +26,9 @@
     "@react-native-picker/picker": "^2.11.1",
     "cors": "^2.8.5",
     "csv-parse": "^6.1.0",
+    "dotenv": "^17.2.1",
     "expo": "^53.0.20",
+    "expo-dev-client": "~5.2.4",
     "expo-location": "~18.1.6",
     "expo-notifications": "^0.31.4",
     "express": "^5.1.0",
@@ -28,8 +40,7 @@
     "react-leaflet": "^4.2.1",
     "react-native": "^0.79.5",
     "react-native-maps": "^1.20.1",
-    "react-native-web": "^0.20.0",
-    "expo-dev-client": "~5.2.4"
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
