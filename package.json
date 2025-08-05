@@ -12,10 +12,12 @@
   "type": "commonjs",
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-picker/picker": "^2.11.1",
     "cors": "^2.8.5",
     "csv-parse": "^6.1.0",
     "expo": "^53.0.20",
+    "expo-location": "~18.1.6",
     "expo-notifications": "^0.31.4",
     "express": "^5.1.0",
     "firebase": "^12.0.0",
@@ -26,10 +28,11 @@
     "react-leaflet": "^4.2.1",
     "react-native": "^0.79.5",
     "react-native-maps": "^1.20.1",
-    "react-native-web": "^0.19.10"
+    "react-native-web": "^0.20.0",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@react-native-community/cli": "latest",
-    "babel-preset-expo": "^10.0.1"
+    "babel-preset-expo": "~13.0.0"
   }
 }

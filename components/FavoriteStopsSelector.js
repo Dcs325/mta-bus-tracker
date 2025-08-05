@@ -30,15 +30,30 @@ export default function FavoriteStopsSelector({ selectedBusLines, onDone }) {
                 <View key={line} style={styles.lineSection}>
                     <Text style={styles.lineTitle}>{line}</Text>
                     <View style={styles.stopsList}>
-                        {(GTFS_STOPS[line] || []).map(stop => (
-                            <TouchableOpacity
-                                key={stop.id}
-                                style={[styles.stopButton, selectedStops[line]?.includes(stop.id) && styles.stopButtonSelected]}
-                                onPress={() => toggleStop(line, stop.id)}
-                            >
-                                <Text style={[styles.stopText, selectedStops[line]?.includes(stop.id) && styles.stopTextSelected]}>{stop.name}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {(() => {
+                            // Find the correct route key that matches the base line name
+                            const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                            let stops = [];
+                            
+                            // Try to find stops in any of the matching routes
+                            for (const route of possibleRoutes) {
+                                const foundStops = GTFS_STOPS[route] || [];
+                                if (foundStops.length > 0) {
+                                    stops = foundStops;
+                                    break;
+                                }
+                            }
+                            
+                            return stops.map(stop => (
+                             <TouchableOpacity
+                                 key={stop.id}
+                                 style={[styles.stopButton, selectedStops[line]?.includes(stop.id) && styles.stopButtonSelected]}
+                                 onPress={() => toggleStop(line, stop.id)}
+                             >
+                                 <Text style={[styles.stopText, selectedStops[line]?.includes(stop.id) && styles.stopTextSelected]}>{stop.name}</Text>
+                             </TouchableOpacity>
+                         ));
+                         })()}
                     </View>
                 </View>
             ))}

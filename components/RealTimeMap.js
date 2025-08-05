@@ -60,7 +60,18 @@ export default function RealTimeMap({ busLocations, userLocation, favStops = {},
     // Flatten all favorite stops into an array of {line, stopId}
     const allFavStops = Object.entries(favStops).flatMap(([line, stops]) =>
         (stops || []).map(stopId => {
-            const stop = (GTFS_STOPS[line] || []).find(s => s.id === stopId);
+            // Find the correct route key that matches the base line name
+            const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+            let stop = null;
+            
+            // Try to find the stop in any of the matching routes
+            for (const route of possibleRoutes) {
+                const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stopId);
+                if (foundStop) {
+                    stop = foundStop;
+                    break;
+                }
+            }
             return stop ? { ...stop, line } : null;
         }).filter(Boolean)
     );
@@ -125,7 +136,20 @@ export default function RealTimeMap({ busLocations, userLocation, favStops = {},
                 {busLocations && allFavStops && Object.entries(favStops).map(([line, stops], idx) => {
                     const bus = busLocations.find(b => (b.lineRef || b.label) === line);
                     const stopId = stops && stops.length > 0 ? stops[0] : null;
-                    const stop = stopId ? (GTFS_STOPS[line] || []).find(s => s.id === stopId) : null;
+                    let stop = null;
+                    if (stopId) {
+                        // Find the correct route key that matches the base line name
+                        const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                        
+                        // Try to find the stop in any of the matching routes
+                        for (const route of possibleRoutes) {
+                            const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stopId);
+                            if (foundStop) {
+                                stop = foundStop;
+                                break;
+                            }
+                        }
+                    }
                     if (bus && stop) {
                         const { lat, lon } = getBusCoordinates(bus);
                         if (isValidCoordinates(lat, lon) && isValidCoordinates(stop.latitude, stop.longitude)) {
@@ -142,7 +166,18 @@ export default function RealTimeMap({ busLocations, userLocation, favStops = {},
                 })}
                 {/* Draw a colored line for each favorite bus route connecting all favorite stops for that route */}
                 {Object.entries(favStops).map(([line, stops], idx) => {
-                    const routeStops = (GTFS_STOPS[line] || []).filter(s => stops.includes(s.id));
+                    // Find the correct route key that matches the base line name
+                    const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                    let routeStops = [];
+                    
+                    // Try to find stops in any of the matching routes
+                    for (const route of possibleRoutes) {
+                        const foundStops = (GTFS_STOPS[route] || []).filter(s => stops.includes(s.id));
+                        if (foundStops.length > 0) {
+                            routeStops = foundStops;
+                            break;
+                        }
+                    }
                     if (routeStops.length > 1) {
                         const positions = routeStops
                             .filter(stop => isValidCoordinates(stop.latitude, stop.longitude))
@@ -166,7 +201,18 @@ export default function RealTimeMap({ busLocations, userLocation, favStops = {},
                         const { lat, lon } = getBusCoordinates(bus);
                         if (isValidCoordinates(lat, lon)) {
                             return stops.map((stopId, sIdx) => {
-                                const stop = (GTFS_STOPS[line] || []).find(s => s.id === stopId);
+                                // Find the correct route key that matches the base line name
+                                const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                                let stop = null;
+                                
+                                // Try to find the stop in any of the matching routes
+                                for (const route of possibleRoutes) {
+                                    const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stopId);
+                                    if (foundStop) {
+                                        stop = foundStop;
+                                        break;
+                                    }
+                                }
                                 if (stop && isValidCoordinates(stop.latitude, stop.longitude)) {
                                     const positions = [[lat, lon], [stop.latitude, stop.longitude]];
                                     console.log('Drawing Polyline:', { line, stopId, positions }); // Debug log

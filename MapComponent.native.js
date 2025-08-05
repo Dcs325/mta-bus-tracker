@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet, Text, Animated } from 'react-native';
 import MapView, { Marker, Callout, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 
-export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [] }) {
+export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [], userLocation = null }) {
     // Default region centered on Brooklyn
     const defaultRegion = {
         latitude: center[0],
@@ -22,7 +22,7 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                 {/* Bus markers */}
                 {buses.map((bus, idx) => {
                     const isClosestBus = bus.isClosestToStop === true;
-                    const pinColor = isClosestBus ? '#4caf50' : 'red';
+                    const busColor = isClosestBus ? '#4caf50' : '#1976d2';
                     
                     // Create animated marker for closest bus
                     if (isClosestBus) {
@@ -57,9 +57,28 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                                     longitude: bus.lon || bus.longitude,
                                 }}
                                 title={`Bus ${bus.id || bus.label || ''} (Tracking)`}
-                                pinColor={pinColor}
                                 zIndex={999}
                             >
+                                <Animated.View style={[
+                                    {
+                                        backgroundColor: busColor,
+                                        width: 32,
+                                        height: 24,
+                                        borderRadius: 8,
+                                        borderWidth: 3,
+                                        borderColor: 'white',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        shadowColor: '#000',
+                                        shadowOffset: { width: 0, height: 4 },
+                                        shadowOpacity: 0.25,
+                                        shadowRadius: 6,
+                                        elevation: 8,
+                                    },
+                                    { transform: [{ scale: scaleAnim }] }
+                                ]}>
+                                    <Text style={{ fontSize: 12, color: 'white', fontWeight: 'bold' }}>🚌</Text>
+                                </Animated.View>
                                 <Callout>
                                     <View style={{ padding: 5, minWidth: 150 }}>
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 5 }}>
@@ -111,8 +130,24 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                                 longitude: bus.lon || bus.longitude,
                             }}
                             title={`Bus ${bus.id || bus.label || ''}`}
-                            pinColor={pinColor}
                         >
+                            <View style={{
+                                backgroundColor: busColor,
+                                width: 28,
+                                height: 21,
+                                borderRadius: 7,
+                                borderWidth: 2,
+                                borderColor: 'white',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                shadowColor: '#000',
+                                shadowOffset: { width: 0, height: 2 },
+                                shadowOpacity: 0.2,
+                                shadowRadius: 4,
+                                elevation: 6,
+                            }}>
+                                <Text style={{ fontSize: 11, color: 'white', fontWeight: 'bold' }}>🚌</Text>
+                            </View>
                             <Callout>
                                 <View style={{ padding: 5, minWidth: 150 }}>
                                     <Text style={{ fontWeight: 'bold', fontSize: 14, marginBottom: 5 }}>Bus {bus.label || bus.id} {(() => {
@@ -157,7 +192,18 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                     const busLon = bus.lon || bus.longitude;
                     
                     // Find the stop coordinates
-                    const stopData = GTFS_STOPS[line]?.find(s => s.id === stop.id);
+                    // Find the correct route key that matches the base line name
+                    const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                    let stopData = null;
+                    
+                    // Try to find the stop in any of the matching routes
+                    for (const route of possibleRoutes) {
+                        const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stop.id);
+                        if (foundStop) {
+                            stopData = foundStop;
+                            break;
+                        }
+                    }
                     if (!stopData || !busLat || !busLon || !stopData.latitude || !stopData.longitude) {
                         return null;
                     }
@@ -188,7 +234,18 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                 {/* Favorite stops markers */}
                 {Object.entries(favStops).map(([line, stopIds]) =>
                     stopIds.map(stopId => {
-                        const stop = GTFS_STOPS[line]?.find(s => s.id === stopId);
+                        // Find the correct route key that matches the base line name
+                        const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                        let stop = null;
+                        
+                        // Try to find the stop in any of the matching routes
+                        for (const route of possibleRoutes) {
+                            const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stopId);
+                            if (foundStop) {
+                                stop = foundStop;
+                                break;
+                            }
+                        }
                         if (!stop) return null;
                         
                         // Get color for this line
@@ -218,6 +275,47 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                             </Marker>
                         );
                     })
+                )}
+                
+                {/* User location marker */}
+                {userLocation && (
+                    <Marker
+                        coordinate={{
+                            latitude: userLocation.latitude,
+                            longitude: userLocation.longitude,
+                        }}
+                        title="Your Location"
+                    >
+                        <View style={{
+                            backgroundColor: '#ff4444',
+                            width: 20,
+                            height: 20,
+                            borderRadius: 10,
+                            borderWidth: 3,
+                            borderColor: 'white',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            shadowColor: '#000',
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.3,
+                            shadowRadius: 4,
+                            elevation: 6,
+                        }}>
+                            <View style={{
+                                backgroundColor: '#ff4444',
+                                width: 8,
+                                height: 8,
+                                borderRadius: 4,
+                            }} />
+                        </View>
+                        <Callout>
+                            <View style={{ padding: 5 }}>
+                                <Text style={{ fontWeight: 'bold', color: '#ff4444' }}>Your Location</Text>
+                                <Text style={{ fontSize: 12 }}>Lat: {userLocation.latitude.toFixed(6)}</Text>
+                                <Text style={{ fontSize: 12 }}>Lng: {userLocation.longitude.toFixed(6)}</Text>
+                            </View>
+                        </Callout>
+                    </Marker>
                 )}
             </MapView>
         </View>

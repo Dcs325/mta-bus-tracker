@@ -35,38 +35,46 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     }
 }
 
-// Create custom bus icons
+// Create custom bus icons with smooth, rounded design
 const createBusIcon = (isClosest = false, lineColor = '#1976d2', busLabel = '') => {
-    const size = isClosest ? 28 : 24;
+    const size = isClosest ? 32 : 28;
     const iconHtml = `
         <div style="
-            background: linear-gradient(45deg, ${lineColor}, ${lineColor}dd);
+            background: linear-gradient(135deg, ${lineColor}f0, ${lineColor}cc, ${lineColor}dd);
             width: ${size}px;
-            height: ${size}px;
-            border-radius: 6px;
-            border: 2px solid white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            height: ${size * 0.75}px;
+            border-radius: ${size * 0.25}px;
+            border: 3px solid white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: ${size * 0.4}px;
             font-weight: bold;
             color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
             position: relative;
             transform: rotate(0deg);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(1px);
         " class="${isClosest ? 'closest-bus' : 'bus-icon'}">
-            🚌
-            ${busLabel ? `<div style="position: absolute; bottom: -18px; left: 50%; transform: translateX(-50%); background: ${lineColor}; color: white; padding: 1px 4px; border-radius: 3px; font-size: 8px; white-space: nowrap;">${busLabel}</div>` : ''}
+            <div style="
+                background: linear-gradient(45deg, rgba(255,255,255,0.3), rgba(255,255,255,0.1));
+                border-radius: ${size * 0.15}px;
+                padding: 2px 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            ">🚌</div>
+            ${busLabel ? `<div style="position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: linear-gradient(45deg, ${lineColor}, ${lineColor}dd); color: white; padding: 2px 6px; border-radius: 8px; font-size: 9px; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.2);">${busLabel}</div>` : ''}
         </div>
     `;
     
     return L.divIcon({
         html: iconHtml,
         className: 'bus-marker',
-        iconSize: [size + 4, size + 4],
-        iconAnchor: [(size + 4) / 2, (size + 4) / 2],
+        iconSize: [size + 6, size + 6],
+        iconAnchor: [(size + 6) / 2, (size + 6) / 2],
         popupAnchor: [0, -(size / 2)]
     });
 };
@@ -294,7 +302,7 @@ function MapInitializer({ routeCoordinates, buses }) {
     return null;
 }
 
-export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [] }) {
+export default function MapComponent({ buses = [], center = [40.650002, -73.949997], routeCoordinates = [], favStops = {}, linesWithColors = {}, closestBuses = [], userLocation = null }) {
     const [mapReady, setMapReady] = useState(false);
     const mapRef = useRef(null);
     const [mapInstance, setMapInstance] = useState(null);
@@ -654,7 +662,18 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                     const { lat: busLat, lon: busLon } = getBusCoordinates(bus);
                     
                     // Find the stop coordinates
-                    const stopData = GTFS_STOPS[line]?.find(s => s.id === stop.id);
+                    // Find the correct route key that matches the base line name
+                    const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                    let stopData = null;
+                    
+                    // Try to find the stop in any of the matching routes
+                    for (const route of possibleRoutes) {
+                        const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stop.id);
+                        if (foundStop) {
+                            stopData = foundStop;
+                            break;
+                        }
+                    }
                     if (!stopData || !isValidCoordinates(busLat, busLon) || !isValidCoordinates(stopData.latitude, stopData.longitude)) {
                         return null;
                     }
@@ -681,9 +700,20 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                 
                 {/* Draw markers for favorite stops */}
                 {Object.entries(favStops).map(([line, stopIds]) => {
-                    const lineStops = GTFS_STOPS[line] || [];
                     return stopIds.map(stopId => {
-                        const stopData = lineStops.find(s => s.id === stopId);
+                        // Find the correct route key that matches the base line name
+                        const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(line + '_'));
+                        let stopData = null;
+                        
+                        // Try to find the stop in any of the matching routes
+                        for (const route of possibleRoutes) {
+                            const foundStop = (GTFS_STOPS[route] || []).find(s => s.id === stopId);
+                            if (foundStop) {
+                                stopData = foundStop;
+                                break;
+                            }
+                        }
+                        
                         if (!stopData || !isValidCoordinates(stopData.latitude, stopData.longitude)) {
                             return null;
                         }
@@ -716,6 +746,29 @@ export default function MapComponent({ buses = [], center = [40.650002, -73.9499
                         );
                     });
                 })}
+                
+                {/* User location marker */}
+                {userLocation && (
+                    <Marker
+                        position={[userLocation.latitude, userLocation.longitude]}
+                        icon={L.divIcon({
+                            html: `<div style="background-color: #ff4444; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 6px rgba(0,0,0,0.3); position: relative;"><div style="background-color: #ff4444; width: 8px; height: 8px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div></div>`,
+                            className: 'user-location-marker',
+                            iconSize: [26, 26],
+                            iconAnchor: [13, 13]
+                        })}
+                    >
+                        <Popup>
+                            <div style={{ padding: '5px' }}>
+                                <div style={{ fontWeight: 'bold', color: '#ff4444' }}>Your Location</div>
+                                <div style={{ fontSize: '12px' }}>
+                                    <strong>Lat:</strong> {userLocation.latitude.toFixed(6)}<br />
+                                    <strong>Lng:</strong> {userLocation.longitude.toFixed(6)}
+                                </div>
+                            </div>
+                        </Popup>
+                    </Marker>
+                )}
                 
                 {/* Draw real-time movement lines between buses */}
                 {validBuses.length > 1 && validBuses.map((bus, idx) => {

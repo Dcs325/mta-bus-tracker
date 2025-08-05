@@ -31,7 +31,9 @@ export default function ProfileScreen({ onClose }) {
                 const userDoc = await getDoc(doc(db, 'users', user.uid));
                 if (userDoc.exists()) {
                     setFavBuses(userDoc.data().favBuses || []);
-                    setFavStops(userDoc.data().favStops || []);
+                    const existingFavStops = userDoc.data().favStops || {};
+                    setFavStops(existingFavStops);
+                    setSelectedStops(existingFavStops);
                     const token = userDoc.data().pushToken;
                     setPushToken(token || '');
                     setNotificationsEnabled(!!token);
@@ -134,15 +136,30 @@ export default function ProfileScreen({ onClose }) {
                         <View key={bus} style={{ width: '100%', marginBottom: 12 }}>
                             <Text style={{ color: '#1976d2', fontWeight: 'bold', marginBottom: 4 }}>{bus} Stops</Text>
                             <View style={styles.multiList}>
-                                {(GTFS_STOPS[bus] || []).map(stop => (
-                                    <TouchableOpacity
-                                        key={stop.id}
-                                        style={[styles.multiButton, selectedStops[bus]?.includes(stop.id) && styles.multiButtonSelected]}
-                                        onPress={() => toggleStop(bus, stop.id)}
-                                    >
-                                        <Text style={[styles.multiButtonText, selectedStops[bus]?.includes(stop.id) && styles.multiButtonTextSelected]}>{stop.name}</Text>
-                                    </TouchableOpacity>
-                                ))}
+                                {(() => {
+                                    // Find the correct route key that matches the base line name
+                                    const possibleRoutes = Object.keys(GTFS_STOPS).filter(route => route.startsWith(bus + '_'));
+                                    let stops = [];
+                                    
+                                    // Try to find stops in any of the matching routes
+                                    for (const route of possibleRoutes) {
+                                        const foundStops = GTFS_STOPS[route] || [];
+                                        if (foundStops.length > 0) {
+                                            stops = foundStops;
+                                            break;
+                                        }
+                                    }
+                                    
+                                    return stops.map(stop => (
+                                        <TouchableOpacity
+                                            key={stop.id}
+                                            style={[styles.multiButton, selectedStops[bus]?.includes(stop.id) && styles.multiButtonSelected]}
+                                            onPress={() => toggleStop(bus, stop.id)}
+                                        >
+                                            <Text style={[styles.multiButtonText, selectedStops[bus]?.includes(stop.id) && styles.multiButtonTextSelected]}>{stop.name}</Text>
+                                        </TouchableOpacity>
+                                    ));
+                                })()}
                             </View>
                         </View>
                     ))}

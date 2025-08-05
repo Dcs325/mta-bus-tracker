@@ -4,29 +4,50 @@
     "slug": "mta-bus-tracker",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+      "supportsTablet": true,
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "background-fetch",
+          "remote-notification"
+        ]
       }
     },
+    "android": {
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE",
+        "WAKE_LOCK",
+        "com.google.android.c2dm.permission.RECEIVE"
+      ]
+    },
+    "notification": {
+      "color": "#1976d2",
+      "androidMode": "default",
+      "androidCollapsedTitle": "MTA Bus Tracker"
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "color": "#1976d2",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
     "web": {
-      "favicon": "./assets/favicon.png",
       "bundler": "metro",
       "entryPoint": "./App.web.js"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "bd6e3564-af8b-48e3-8859-a4e8b4ac2ac2"
+      }
     }
   }
 }

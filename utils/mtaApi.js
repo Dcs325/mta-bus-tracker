@@ -10,11 +10,15 @@ const MTA_BASE_URL = "https://bustime.mta.info/api/siri";
 const LOCAL_IP = '172.16.0.182'; // e.g., '192.168.1.100'
 const API_BASE_URL = Platform.OS === 'web' ? 'http://localhost:3000' : `http://${LOCAL_IP}:3000`;
 
+// Fallback API configuration for when local server is not accessible
+const FALLBACK_ENABLED = true;
+const FALLBACK_MESSAGE = 'Local server not accessible. Make sure your mobile device is on the same WiFi network as your development machine.';
+
 // Fetch all buses for a specific line
 export async function fetchBusesForLine(lineRef) {
     try {
         console.log(`Fetching buses for line: ${lineRef}`);
-        const url = `http://localhost:3000/api/vehicle-monitoring?lineRef=${lineRef}`;
+        const url = `${API_BASE_URL}/api/vehicle-monitoring?lineRef=${lineRef}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -65,6 +69,17 @@ export async function fetchBusesForLine(lineRef) {
         });
     } catch (error) {
         console.error('Error in fetchBusesForLine:', error);
+        
+        // Provide helpful error message for network connectivity issues
+        if (error.message.includes('Network request failed') && Platform.OS !== 'web' && FALLBACK_ENABLED) {
+            console.error('Network connectivity issue:', FALLBACK_MESSAGE);
+            console.error('Current API URL:', API_BASE_URL);
+            console.error('Make sure:');
+            console.error('1. Your backend server is running on port 3000');
+            console.error('2. Your mobile device is connected to the same WiFi network');
+            console.error('3. Your LOCAL_IP is correct:', LOCAL_IP);
+        }
+        
         throw error;
     }
 }
