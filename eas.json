@@ -1,26 +1,27 @@
 {
   "cli": {
-    "version": ">= 16.17.4",
+    "version": ">= 13.2.1",
     "appVersionSource": "remote"
   },
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal",
-      "env": {
-        "NODE_ENV": "development"
-      }
+      "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal",
-      "env": {
-        "NODE_ENV": "staging"
-      }
+      "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true,
-      "env": {
-        "NODE_ENV": "production"
+      "node": "18.18.0",
+      "npm": "9.x.x",
+      "cache": {
+        "key": "v1-dependencies-{{ .Toolchain.Node.Version }}-{{ checksum \"package-lock.json\" }}",
+        "paths": [
+          "node_modules"
+        ]
+      },
+      "android": {
+        "buildType": "apk"
       }
     }
   },
