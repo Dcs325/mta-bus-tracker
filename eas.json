@@ -1,8 +1,4 @@
 {
-  "cli": {
-    "version": ">= 13.2.1",
-    "appVersionSource": "remote"
-  },
   "build": {
     "development": {
       "developmentClient": true,
@@ -13,7 +9,6 @@
     },
     "production": {
       "node": "18.18.0",
-      "npm": "9.x.x",
       "cache": {
         "key": "v1-dependencies-{{ .Toolchain.Node.Version }}-{{ checksum \"package-lock.json\" }}",
         "paths": [
